@@ -34,11 +34,46 @@ type Template = String
 type STemplate = Template
 
 -- Write your code below:
+
+-- check whether a word can be formed from a hand
 formableBy :: String -> Hand -> Bool
 formableBy [] h = True
-formableBy (x:xs) h
-  | x `elem` h = formableBy xs (delete x h)
+formableBy (w:ws) h
+  | w `elem` h = formableBy ws (delete w h)
   | otherwise = False
 
+-- get all words that can be formed by a hand
 wordsFrom :: Hand -> [String]
 wordsFrom hand = filter (\w -> formableBy w hand) allWords
+
+-- check whether a word matches a template
+wordFitsTemplate :: Template -> Hand -> String -> Bool
+wordFitsTemplate p h w
+  | length w /= length p = False
+  | elemIndex ch p /= elemIndex ch w = False
+  | formableBy w h' = True
+  | otherwise = False
+  where
+    ch = (filter (\c -> c /= '?') p) !! 0
+    h' = h ++ [ch]
+
+-- get all words a hand can match to template
+wordsFittingTemplate :: Template -> Hand -> [String]
+wordsFittingTemplate p h = filter (\w -> wordFitsTemplate p h w) allWords
+
+scrabbleValueWord :: String -> Int
+scrabbleValueWord [] = 0
+scrabbleValueWord w = sum (map scrabbleValue w)
+
+-- find words with highest point value
+bestWords :: [String] -> [String]
+bestWords [] = []
+bestWords ws = filter (\w -> bestWordsHelper w max) ws
+  where
+    max = maximum (map scrabbleValueWord ws)
+
+bestWordsHelper :: String -> Int -> Bool
+bestWordsHelper w max
+  | scrabbleValueWord w == max = True
+  | otherwise = False
+
